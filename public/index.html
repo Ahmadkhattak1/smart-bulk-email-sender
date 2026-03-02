@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Campaign Sender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-head">
+          <div class="sidebar-logo">
+            <span class="sidebar-logo-full">Mail Console</span>
+            <span class="sidebar-logo-short">MC</span>
+          </div>
+          <button
+            id="sidebarToggleBtn"
+            type="button"
+            class="icon-btn sidebar-toggle-btn"
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+          >
+            <span class="toggle-open">&larr;</span>
+            <span class="toggle-closed">&rarr;</span>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-item active" title="Campaign Builder">
+            <span class="nav-item-label">Campaign Builder</span>
+            <span class="nav-item-short">C</span>
+          </button>
+          <button id="sidebarSettingsBtn" type="button" class="nav-item" title="Settings">
+            <span class="nav-item-label">Settings</span>
+            <span class="nav-item-short">S</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-status">
+          <div class="status-line">
+            <span>Sender</span>
+            <strong id="providerStatus">Missing setup</strong>
+          </div>
+          <div class="status-line">
+            <span>OpenAI</span>
+            <strong id="openAiStatus">Not set</strong>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div>
+            <h1>Campaign Builder</h1>
+            <p id="topStatus" class="muted">0 leads loaded</p>
+          </div>
+        </header>
+
+        <section class="step-tabs" id="stepTabs">
+          <button type="button" class="step-tab active" data-step="audience">1. Audience</button>
+          <button type="button" class="step-tab" data-step="content">2. Content</button>
+          <button type="button" class="step-tab" data-step="review">3. Review & Send</button>
+        </section>
+
+        <section id="panel-audience" class="step-panel active">
+          <div class="card">
+            <div class="panel-head">
+              <h2>Audience</h2>
+            </div>
+
+            <div class="audience-upload">
+              <div id="csvDropZone" class="dropzone" role="button" tabindex="0" aria-label="Upload CSV">
+                <div class="dropzone-title">Drop CSV file here</div>
+                <div class="dropzone-sub">or click to browse</div>
+                <div id="csvFileName" class="dropzone-file">No file selected</div>
+                <input id="csvFile" type="file" accept=".csv,text/csv" class="visually-hidden" />
+                <button id="browseCsvBtn" type="button" class="btn btn-subtle">Browse CSV</button>
+              </div>
+              <button id="uploadBtn" type="button" class="btn btn-primary">Load CSV</button>
+            </div>
+
+            <div id="mappingRow" class="grid two mapping-grid" hidden>
+              <label class="field mapping-card">
+                Recipient Email Column
+                <select id="emailColumn"></select>
+              </label>
+              <label class="field mapping-card">
+                Delay Between Sends (ms)
+                <input id="delayMs" type="number" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric-card">
+                <div id="metricLeads" class="metric-value">0</div>
+                <div class="metric-label">Leads</div>
+              </div>
+              <div class="metric-card">
+                <div id="metricColumns" class="metric-value">0</div>
+                <div class="metric-label">Columns</div>
+              </div>
+            </div>
+
+            <div class="panel-actions audience-actions">
+              <button id="toContentBtn" type="button" class="btn btn-primary">Continue</button>
+            </div>
+
+            <div id="leadsPreviewWrap" class="table-wrap" hidden>
+              <table id="leadsPreviewTable">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <p id="csvInfo" class="muted"></p>
+          </div>
+        </section>
+
+        <section id="panel-content" class="step-panel">
+          <div class="content-grid">
+            <div class="card">
+              <div class="panel-head panel-head-space">
+                <h2>Content</h2>
+                <button id="toggleAiBtn" type="button" class="btn btn-subtle">AI Assist</button>
+              </div>
+
+              <div class="field variable-editor">
+                <label for="subjectTemplate">Subject</label>
+                <input id="subjectTemplate" autocomplete="off" placeholder="Quick idea for {{Company}}" />
+                <div id="subjectSuggestions" class="suggestion-menu" hidden></div>
+              </div>
+
+              <div class="field variable-editor">
+                <label for="bodyTemplate">Body</label>
+                <textarea
+                  id="bodyTemplate"
+                  rows="10"
+                  placeholder="Hi {{First Name}},\n\nWanted to reach out because..."
+                ></textarea>
+                <div id="bodySuggestions" class="suggestion-menu" hidden></div>
+              </div>
+
+              <div id="variablesWrap" class="variable-wrap" hidden>
+                <div class="small-label">Variables</div>
+                <div id="variablesList" class="chips"></div>
+              </div>
+
+              <p class="muted">Type <code>{{</code> for variable suggestions.</p>
+
+              <div id="aiPanel" class="ai-panel" hidden>
+                <div class="grid two">
+                  <label class="field">
+                    Intent
+                    <input id="rewriteIntent" placeholder="Book 15-minute calls" />
+                  </label>
+                  <label class="field">
+                    Tone
+                    <input id="rewriteTone" placeholder="Concise and friendly" />
+                  </label>
+                </div>
+
+                <label class="field">
+                  AI Instructions
+                  <textarea id="rewriteConstraints" rows="3" placeholder="Do: clear CTA. Don't: be pushy."></textarea>
+                </label>
+
+                <div class="action-row">
+                  <button id="writeWithAiBtn" type="button" class="btn">Write With AI</button>
+                  <button id="rewriteBtn" type="button" class="btn btn-subtle">Rewrite Draft</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card preview-card">
+              <div class="panel-head">
+                <h2>Preview</h2>
+              </div>
+              <p id="previewLeadInfo" class="muted">Using first lead row for preview.</p>
+
+              <div class="preview-box">
+                <div class="preview-label">Subject</div>
+                <div id="previewSubject" class="preview-value"></div>
+              </div>
+
+              <div class="preview-box">
+                <div class="preview-label">Body</div>
+                <div id="previewBody" class="preview-value preview-body"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-actions between">
+            <button id="backToAudienceBtn" type="button" class="btn">Back</button>
+            <button id="toReviewBtn" type="button" class="btn btn-primary">Continue</button>
+          </div>
+        </section>
+
+        <section id="panel-review" class="step-panel">
+          <div class="review-grid">
+            <div class="card">
+              <div class="panel-head">
+                <h2>Review</h2>
+              </div>
+
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span>Leads</span>
+                  <strong id="reviewLeadCount">0</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Provider</span>
+                  <strong id="reviewProvider">SMTP</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Delay</span>
+                  <strong id="reviewDelay">0 ms</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Personalization</span>
+                  <strong id="reviewPersonalization">No</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="card risk-card">
+              <div class="panel-head panel-head-space">
+                <h2>Spam Risk</h2>
+                <span id="riskBadge" class="chip risk-low">Low</span>
+              </div>
+              <p id="riskSummary" class="muted"></p>
+              <ul id="riskList" class="risk-list"></ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="action-row test-send-row">
+              <input id="testEmail" placeholder="test@example.com" />
+              <button id="testSendBtn" type="button" class="btn">Test Send</button>
+            </div>
+
+            <div class="action-row">
+              <button id="sendBtn" type="button" class="btn btn-primary">Start Campaign</button>
+              <button id="exportBtn" type="button" class="btn" disabled>Export Status CSV</button>
+            </div>
+
+            <p id="summary" class="muted"></p>
+
+            <div id="statusTableWrap" class="table-wrap" hidden>
+              <table id="statusTable">
+                <thead>
+                  <tr>
+                    <th>Row</th>
+                    <th>Recipient</th>
+                    <th>Status</th>
+                    <th>Provider</th>
+                    <th>Subject</th>
+                    <th>Error</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-actions">
+            <button id="backToContentBtn" type="button" class="btn">Back</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="settingsDrawer" class="settings-drawer" hidden>
+      <div id="settingsOverlay" class="settings-overlay"></div>
+      <aside class="settings-panel">
+        <div class="panel-head panel-head-space">
+          <h2>Sender Settings</h2>
+          <button id="closeSettingsBtn" type="button" class="btn btn-ghost">Close</button>
+        </div>
+        <p class="muted">Global settings used across campaigns.</p>
+
+        <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+          <button
+            id="settingsTabProvider"
+            type="button"
+            class="settings-tab active"
+            role="tab"
+            aria-selected="true"
+          >
+            Email Sender
+          </button>
+          <button
+            id="settingsTabOpenAi"
+            type="button"
+            class="settings-tab"
+            role="tab"
+            aria-selected="false"
+          >
+            OpenAI
+          </button>
+        </div>
+
+        <input id="providerType" type="hidden" value="smtp" />
+
+        <section id="settingsProviderPanel" class="settings-section">
+          <div class="provider-cards settings-provider-cards">
+            <button type="button" class="provider-card active" data-provider="smtp">
+              <span>SMTP</span>
+              <small>Gmail/Outlook/custom</small>
+            </button>
+            <button type="button" class="provider-card" data-provider="resend">
+              <span>Resend</span>
+              <small>API based delivery</small>
+            </button>
+            <button type="button" class="provider-card" data-provider="sendgrid">
+              <span>SendGrid</span>
+              <small>API based delivery</small>
+            </button>
+          </div>
+
+          <div id="smtpSettings" class="provider-panel">
+            <label class="field">
+              SMTP Preset
+              <select id="smtpPreset">
+                <option value="gmail">Google Gmail</option>
+                <option value="outlook">Microsoft Outlook</option>
+                <option value="yahoo">Yahoo Mail</option>
+                <option value="zoho">Zoho Mail</option>
+                <option value="custom">Custom SMTP</option>
+              </select>
+            </label>
+
+            <div class="grid two">
+              <label class="field">
+                SMTP Host
+                <input id="smtpHost" placeholder="smtp.gmail.com" />
+              </label>
+              <label class="field">
+                SMTP Port
+                <input id="smtpPort" type="number" value="587" />
+              </label>
+              <label class="field">
+                SMTP User
+                <input id="smtpUser" placeholder="you@company.com" />
+              </label>
+              <label class="field">
+                SMTP Password
+                <input id="smtpPass" type="password" placeholder="app password" />
+              </label>
+              <label class="field">
+                From Name
+                <input id="fromName" placeholder="Alex" />
+              </label>
+              <label class="field">
+                From Email
+                <input id="fromEmail" placeholder="alex@company.com" />
+              </label>
+              <label class="field">
+                Reply-To (optional)
+                <input id="smtpReplyTo" placeholder="reply@company.com" />
+              </label>
+            </div>
+
+            <label class="inline-check">
+              <input id="smtpSecure" type="checkbox" />
+              Secure SMTP (usually port 465)
+            </label>
+          </div>
+
+          <div id="resendSettings" class="provider-panel" hidden>
+            <div class="grid two">
+              <label class="field">
+                Resend API Key
+                <input id="resendApiKey" type="password" placeholder="re_..." />
+              </label>
+              <label class="field">
+                From Email
+                <input id="resendFromEmail" placeholder="outreach@yourdomain.com" />
+              </label>
+              <label class="field">
+                From Name
+                <input id="resendFromName" placeholder="Alex" />
+              </label>
+              <label class="field">
+                Reply-To (optional)
+                <input id="resendReplyTo" placeholder="reply@yourdomain.com" />
+              </label>
+            </div>
+          </div>
+
+          <div id="sendgridSettings" class="provider-panel" hidden>
+            <div class="grid two">
+              <label class="field">
+                SendGrid API Key
+                <input id="sendgridApiKey" type="password" placeholder="SG..." />
+              </label>
+              <label class="field">
+                From Email
+                <input id="sendgridFromEmail" placeholder="outreach@yourdomain.com" />
+              </label>
+              <label class="field">
+                From Name
+                <input id="sendgridFromName" placeholder="Alex" />
+              </label>
+              <label class="field">
+                Reply-To (optional)
+                <input id="sendgridReplyTo" placeholder="reply@yourdomain.com" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section id="settingsOpenAiPanel" class="settings-section" hidden>
+          <div class="card settings-openai-card">
+            <div class="panel-head">
+              <h2>OpenAI</h2>
+            </div>
+            <div class="grid two">
+              <label class="field">
+                API Key
+                <input id="openAiApiKey" type="password" placeholder="sk-..." />
+              </label>
+              <label class="field">
+                Model
+                <select id="openAiModel">
+                  <option value="gpt-4o-mini">gpt-4o-mini</option>
+                  <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                  <option value="gpt-4.1">gpt-4.1</option>
+                  <option value="gpt-4o">gpt-4o</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <div class="panel-actions">
+          <button id="saveSettingsBtn" type="button" class="btn btn-primary">Save Settings</button>
+        </div>
+      </aside>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
