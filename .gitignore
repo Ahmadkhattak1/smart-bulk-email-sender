@@ -26,6 +26,7 @@ build/
 .cache/
 .tmp/
 tmp/
+data/
 *.pid
 *.pid.lock
 

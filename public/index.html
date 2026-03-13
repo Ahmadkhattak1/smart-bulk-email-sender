@@ -33,9 +33,18 @@
         </div>
 
         <nav class="sidebar-nav">
-          <button type="button" class="nav-item active" title="Campaign Builder">
+          <button
+            id="sidebarCampaignBtn"
+            type="button"
+            class="nav-item active"
+            title="Campaign Builder"
+          >
             <span class="nav-item-label">Campaign Builder</span>
             <span class="nav-item-short">C</span>
+          </button>
+          <button id="sidebarOutreachBtn" type="button" class="nav-item" title="Outreach">
+            <span class="nav-item-label">Outreach</span>
+            <span class="nav-item-short">O</span>
           </button>
           <button id="sidebarSettingsBtn" type="button" class="nav-item" title="Settings">
             <span class="nav-item-label">Settings</span>
@@ -58,16 +67,17 @@
       <main class="main-area">
         <header class="topbar">
           <div>
-            <h1>Campaign Builder</h1>
+            <h1 id="topTitle">Campaign Builder</h1>
             <p id="topStatus" class="muted">0 leads loaded</p>
           </div>
         </header>
 
-        <section class="step-tabs" id="stepTabs">
-          <button type="button" class="step-tab active" data-step="audience">1. Audience</button>
-          <button type="button" class="step-tab" data-step="content">2. Content</button>
-          <button type="button" class="step-tab" data-step="review">3. Review & Send</button>
-        </section>
+        <section id="workspace-campaign" class="workspace-panel active">
+          <section class="step-tabs" id="stepTabs">
+            <button type="button" class="step-tab active" data-step="audience">1. Audience</button>
+            <button type="button" class="step-tab" data-step="content">2. Content</button>
+            <button type="button" class="step-tab" data-step="review">3. Review & Send</button>
+          </section>
 
         <section id="panel-audience" class="step-panel active">
           <div class="card">
@@ -133,7 +143,7 @@
 
               <div class="field variable-editor">
                 <label for="subjectTemplate">Subject</label>
-                <input id="subjectTemplate" autocomplete="off" placeholder="Quick idea for {{Company}}" />
+                  <input id="subjectTemplate" autocomplete="off" placeholder="Enter subject" />
                 <div id="subjectSuggestions" class="suggestion-menu" hidden></div>
               </div>
 
@@ -142,7 +152,7 @@
                 <textarea
                   id="bodyTemplate"
                   rows="10"
-                  placeholder="Hi {{First Name}},\n\nWanted to reach out because..."
+                    placeholder="Enter email body"
                 ></textarea>
                 <div id="bodySuggestions" class="suggestion-menu" hidden></div>
               </div>
@@ -241,7 +251,7 @@
 
           <div class="card">
             <div class="action-row test-send-row">
-              <input id="testEmail" placeholder="test@example.com" />
+              <input id="testEmail" placeholder="Enter test recipient" />
               <button id="testSendBtn" type="button" class="btn">Test Send</button>
             </div>
 
@@ -271,6 +281,194 @@
 
           <div class="panel-actions">
             <button id="backToContentBtn" type="button" class="btn">Back</button>
+          </div>
+        </section>
+
+        </section>
+
+        <section id="workspace-outreach" class="workspace-panel">
+          <div class="card outreach-hero">
+            <div class="panel-head">
+              <h2>Outreach</h2>
+            </div>
+            <p class="muted">
+              Review every contacted address in one list, build separate follow-up queues, and send each queue with its own message and delay.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="panel-head panel-head-space">
+              <div>
+                <h2>Reached Out</h2>
+                <p class="muted outreach-section-note">
+                  Filter the list, select the contacts you want, then turn that selection into a follow-up queue.
+                </p>
+              </div>
+              <button id="refreshSentEmailsBtn" type="button" class="btn btn-subtle">Refresh</button>
+            </div>
+
+            <div class="metric-grid followup-metrics">
+              <div class="metric-card">
+                <div id="sentThreadsMetric" class="metric-value">0</div>
+                <div class="metric-label">Reached Out</div>
+              </div>
+              <div class="metric-card">
+                <div id="sentReadyMetric" class="metric-value">0</div>
+                <div class="metric-label">Ready to Follow Up</div>
+              </div>
+              <div class="metric-card">
+                <div id="sentSelectedMetric" class="metric-value">0</div>
+                <div class="metric-label">Selected</div>
+              </div>
+              <div class="metric-card">
+                <div id="sentRecordsMetric" class="metric-value">0</div>
+                <div class="metric-label">Total Attempts</div>
+              </div>
+            </div>
+
+            <div class="grid three followup-filter-grid">
+              <label class="field">
+                Search
+                <input id="sentEmailSearch" placeholder="Email, company, subject..." />
+              </label>
+              <label class="field">
+                Minimum Age
+                <select id="followUpAgeDays">
+                  <option value="0">Any time</option>
+                  <option value="1">1 day or more</option>
+                  <option value="2" selected>2 days or more</option>
+                  <option value="3">3 days or more</option>
+                  <option value="7">7 days or more</option>
+                </select>
+              </label>
+              <label class="field">
+                Show
+                <select id="followUpStatusFilter">
+                  <option value="all">All reached-out contacts</option>
+                  <option value="ready">Ready to follow up</option>
+                  <option value="sent">Successful threads</option>
+                  <option value="failed">Latest attempt failed</option>
+                  <option value="first-follow-up">No follow-up sent yet</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="action-row followup-selection-row">
+              <button id="selectVisibleFollowUpsBtn" type="button" class="btn">Select Visible</button>
+              <button id="selectReadyFollowUpsBtn" type="button" class="btn btn-subtle">Select Ready</button>
+              <button id="clearFollowUpSelectionBtn" type="button" class="btn btn-ghost">Clear Selection</button>
+              <button id="createQueueFromSelectionBtn" type="button" class="btn btn-primary">
+                Create Queue from Selection
+              </button>
+              <span id="followUpSelectionSummary" class="muted">0 selected</span>
+            </div>
+
+            <p id="sentEmailsEmpty" class="muted">No sent email threads yet.</p>
+            <p id="sentEmailsInfo" class="muted"></p>
+
+            <div class="table-wrap outreach-thread-table-wrap">
+              <table class="sent-thread-table">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Recipient</th>
+                    <th>Contact</th>
+                    <th>Last Subject</th>
+                    <th>Last Activity</th>
+                    <th>Touches</th>
+                    <th>Follow-up</th>
+                  </tr>
+                </thead>
+                <tbody id="sentThreadsList"></tbody>
+              </table>
+            </div>
+
+            <div class="panel-actions followup-load-more-row">
+              <button id="loadMoreSentEmailsBtn" type="button" class="btn btn-subtle" hidden>
+                Load More Contacts
+              </button>
+            </div>
+          </div>
+
+          <div class="outreach-studio-grid">
+            <div class="card">
+              <div class="panel-head panel-head-space">
+                <div>
+                  <h2>Follow-up Queues</h2>
+                  <p class="muted outreach-section-note">
+                    Save different follow-up groups with different messages and timing.
+                  </p>
+                </div>
+                <button id="newFollowUpQueueBtn" type="button" class="btn btn-subtle">New Blank Queue</button>
+              </div>
+
+              <p id="followUpQueueEmpty" class="muted">No follow-up queues yet.</p>
+              <div id="followUpQueueList" class="queue-list"></div>
+            </div>
+
+            <div class="card followup-studio-card">
+              <div class="panel-head panel-head-space">
+                <div>
+                  <h2>Queue Studio</h2>
+                  <p id="followUpQueueAudienceSummary" class="muted">
+                    Create or open a queue to choose its audience, message, and delay.
+                  </p>
+                </div>
+                <button id="useSelectionForQueueBtn" type="button" class="btn btn-subtle">
+                  Use Current Selection
+                </button>
+              </div>
+
+              <p id="followUpQueueSourceNote" class="muted followup-variable-note">
+                Queue messages are blank by default. Add your own copy and use placeholders where needed.
+              </p>
+
+              <label class="field">
+                Queue Name
+                <input id="followUpQueueName" placeholder="Example: Two-day reminder" />
+              </label>
+
+              <div class="grid two">
+                <label class="field">
+                  Follow-up Subject
+                  <input id="followUpSubjectTemplate" placeholder="{{previous_subject}}" />
+                </label>
+                <label class="field">
+                  Delay Between Sends (ms)
+                  <input id="followUpDelayMs" type="number" min="0" value="0" />
+                </label>
+              </div>
+
+              <label class="field">
+                Follow-up Body
+                <textarea id="followUpBodyTemplate" rows="8" placeholder="{{follow_up_message}}"></textarea>
+              </label>
+
+              <p class="muted followup-variable-note">
+                Available placeholders: <code>{{previous_subject}}</code>, <code>{{previous_body}}</code>,
+                <code>{{previous_sent_at}}</code>, <code>{{touch_number}}</code>,
+                <code>{{recipient_email}}</code>, plus your original CSV fields.
+              </p>
+
+              <div class="action-row followup-send-row">
+                <button id="saveFollowUpQueueBtn" type="button" class="btn">Save Queue</button>
+                <button id="duplicateFollowUpQueueBtn" type="button" class="btn btn-subtle">Duplicate</button>
+                <button id="deleteFollowUpQueueBtn" type="button" class="btn btn-ghost">Delete</button>
+                <button id="sendFollowUpBtn" type="button" class="btn btn-primary">Send Active Queue</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="panel-head panel-head-space">
+              <h2>Send History</h2>
+              <button id="refreshHistoryBtn" type="button" class="btn btn-subtle">Refresh</button>
+            </div>
+            <p class="muted">
+              Saved test sends and campaigns, including the source file and results export when available.
+            </p>
+            <p id="historyEmpty" class="muted">No send history yet.</p>
+            <div id="historyList" class="history-list"></div>
           </div>
         </section>
       </main>
@@ -306,13 +504,17 @@
           </button>
         </div>
 
-        <input id="providerType" type="hidden" value="smtp" />
+        <input id="providerType" type="hidden" value="gmail" />
 
         <section id="settingsProviderPanel" class="settings-section">
           <div class="provider-cards settings-provider-cards">
-            <button type="button" class="provider-card active" data-provider="smtp">
+            <button type="button" class="provider-card active" data-provider="gmail">
+              <span>Gmail</span>
+              <small>Google app password</small>
+            </button>
+            <button type="button" class="provider-card" data-provider="smtp">
               <span>SMTP</span>
-              <small>Gmail/Outlook/custom</small>
+              <small>Outlook/Yahoo/custom</small>
             </button>
             <button type="button" class="provider-card" data-provider="resend">
               <span>Resend</span>
@@ -324,7 +526,36 @@
             </button>
           </div>
 
-          <div id="smtpSettings" class="provider-panel">
+          <div id="gmailSettings" class="provider-panel">
+            <p class="muted">
+              Authenticate with Gmail using an App Password, then optionally send from a custom domain address that you have already added in Gmail under Accounts and Import > Send mail as.
+            </p>
+
+            <div class="grid two">
+              <label class="field">
+                Gmail Login Email
+                <input id="gmailEmail" type="email" placeholder="you@gmail.com" />
+              </label>
+              <label class="field">
+                App Password
+                <input id="gmailAppPassword" type="password" placeholder="16-character app password" />
+              </label>
+              <label class="field">
+                From Name
+                <input id="gmailFromName" placeholder="Alex" />
+              </label>
+              <label class="field">
+                From Email (optional)
+                <input id="gmailFromEmail" type="email" placeholder="alex@company.com" />
+              </label>
+              <label class="field">
+                Reply-To (optional)
+                <input id="gmailReplyTo" placeholder="reply@company.com" />
+              </label>
+            </div>
+          </div>
+
+          <div id="smtpSettings" class="provider-panel" hidden>
             <label class="field">
               SMTP Preset
               <select id="smtpPreset">
@@ -380,8 +611,48 @@
                 <input id="resendApiKey" type="password" placeholder="re_..." />
               </label>
               <label class="field">
-                From Email
-                <input id="resendFromEmail" placeholder="outreach@yourdomain.com" />
+                Rotating From Emails
+                <div id="resendFromEmailList" class="resend-from-email-list">
+                  <div class="resend-from-email-row">
+                    <input id="resendFromEmail1" data-resend-from-email placeholder="outreach@yourdomain.com" />
+                  </div>
+                  <div class="resend-from-email-row" hidden>
+                    <input id="resendFromEmail2" data-resend-from-email placeholder="followup@yourdomain.com" />
+                    <button
+                      type="button"
+                      class="btn btn-ghost resend-from-email-remove"
+                      data-resend-remove-index="1"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div class="resend-from-email-row" hidden>
+                    <input id="resendFromEmail3" data-resend-from-email placeholder="team@yourdomain.com" />
+                    <button
+                      type="button"
+                      class="btn btn-ghost resend-from-email-remove"
+                      data-resend-remove-index="2"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div class="resend-from-email-row" hidden>
+                    <input id="resendFromEmail4" data-resend-from-email placeholder="hello@yourdomain.com" />
+                    <button
+                      type="button"
+                      class="btn btn-ghost resend-from-email-remove"
+                      data-resend-remove-index="3"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <button id="addResendFromEmailBtn" type="button" class="btn btn-subtle resend-from-email-add" hidden>
+                  Add another from email
+                </button>
+                <small class="muted resend-from-email-note">
+                  Bulk sends rotate through these addresses in order.
+                </small>
               </label>
               <label class="field">
                 From Name
